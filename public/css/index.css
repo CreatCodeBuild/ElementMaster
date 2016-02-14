@@ -1,0 +1,49 @@
+/* Specific Component */
+.ToolCard {
+	background-color: #ECF0F1;
+}
+
+.ToolCard:hover {
+	background-color: #E74C3C;
+}
+
+/* Declarative */
+.NoneListStyle {
+    list-style-type: none;
+}
+
+.SolidDivider {
+	border-bottom: 1px solid #dadacb;
+}
+
+.SoftBorder {
+	border: 1px solid #dadacb
+}
+
+.InlineBlock {
+	display: inline-block;
+}
+
+.Inline {
+	display: inline;
+}
+
+.FloatRight {
+	float: right;
+}
+
+.MarginLeft20 {
+	margin-left: 20px;
+}
+
+.MarginRight20 {
+	margin-right: 20px;
+}
+
+.NoPadding {
+	padding: 0;
+}
+
+.NoMargin {
+	margin: 0;
+}

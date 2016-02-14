@@ -1,0 +1,15 @@
+{
+  "name": "element-master",
+  "version": "0.0.1",
+  "description": "Element Master is a mini game about creation and destruction",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "CreatCodeBuild",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4"
+  }
+}
