@@ -4,7 +4,8 @@
   "description": "Element Master is a mini game about creation and destruction",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "author": "CreatCodeBuild",
   "license": "MIT",
