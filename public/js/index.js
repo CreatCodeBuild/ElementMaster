@@ -16,3 +16,4 @@ elementMasterApp.config(['$routeProvider', function($routeProvider) {
         redirectTo: '/'
     });
 }]);
+
