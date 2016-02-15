@@ -43,14 +43,8 @@ var MagicalPoint = {
 		return shape;
 	},
 
-	onKeyBoard: function(shape, stage, otherShapes) {
+	onKeyBoard: function(shape) {
 		return function(event) {
-			otherShapes.forEach(function(item, index, array) {
-				if(Animator.collisionDetection(shape, item)) {
-					Game.handleCollision();
-				}
-			});
-
 			var KEYCODE_LEFT = 37, 
 				KEYCODE_RIGHT = 39,
 				KEYCODE_UP = 38, 
@@ -74,8 +68,6 @@ var MagicalPoint = {
 					gotten.to({y: shape.y+distance}, time);
 					break;
 			}
-			createjs.Ticker.setFPS(60);
-			createjs.Ticker.addEventListener("tick", stage);
 		};
 	}
 }
@@ -140,8 +132,16 @@ var Animator = {
 		});
 	},
 
+	collisionDetection: function(shape, otherShapes) {
+		otherShapes.forEach(function(item, index, array) {
+			if(Animator.isCollided(shape, item)) {
+				Game.handleCollision();
+			}
+		});
+	},
+
 	//both shape1 and shape2 have to be circles
-	collisionDetection: function(shape1, shape2) {
+	isCollided: function(shape1, shape2) {
 		let r1 = shape1.graphics.command.radius;
 		let r2 = shape2.graphics.command.radius;
 
@@ -177,7 +177,7 @@ var Game = {
 		];
 		this.startPos = {
 			x: 400,
-			y: 500,
+			y: 550,
 			size: 10
 		}
 		this.nucleusPos = {
@@ -212,6 +212,7 @@ var Game = {
 		//init nucleus
 		var nucleus = MagicalPoint.constructElectron(this.nucleusPos.x, this.nucleusPos.y, this.nucleusPos.size);
 		Animator.stage.addChild(nucleus);
+		Animator.nucleus = nucleus;
 
 		var numberOfOrbits = level.electron.length;		
 		var electrons = [];
@@ -224,20 +225,26 @@ var Game = {
 				var pos = Animator.findPosition(nucleus, radius, j, electronsPerOrbit);
 				var electron = MagicalPoint.construct(pos.x, pos.y, 15);
 				//console.log(pos.x, pos.y);
-				Animator.orbiting(electron, nucleus, nthOrbit*0.1);
+				Animator.orbiting(electron, nucleus, nthOrbit*0.05);
 				Animator.stage.addChild(electron);
 				electrons.push(electron);
 			}
 		}
 
+		//the point gamer controls
 		var point = MagicalPoint.construct(this.startPos.x, this.startPos.y, this.startPos.size);
 		Animator.stage.addChild(point);
-		document.onkeydown = MagicalPoint.onKeyBoard(point, Animator.stage, electrons);
-
-		createjs.Ticker.setFPS(60);
-		createjs.Ticker.addEventListener("tick", Animator.stage);
+		Animator.userPoint = point;
+		document.onkeydown = MagicalPoint.onKeyBoard(point);
 
 		Animator.stage.update();
+		//register animation events
+		createjs.Ticker.setFPS(60);
+		createjs.Ticker.addEventListener("tick", function() {
+			Animator.collisionDetection(point, electrons);
+		});
+		createjs.Ticker.addEventListener("tick", this.checkGameState);
+		createjs.Ticker.addEventListener("tick", Animator.stage);
 	},
 
 	goToNextLevel: function() {
@@ -246,13 +253,19 @@ var Game = {
 			this.currentLevel++;
 			this.initLevel();
 		} else {
-			console.log(' Congradulations! You have already reached the last level.');
+			createjs.Ticker.removeAllEventListeners();
+			createjs.Tween.removeAllTweens();
+			var text = new createjs.Text("Congradulations! Last Level 达成！", "40px Arial", "000000");
+			text.x = 140;
+			text.y = 200;
+			text.textBaseline = "alphabetic";
+			Animator.stage.addChild(text);
 		}
 	},
 
 	isLevelCompleted: function() {
-		console.log('Game.isLevelCompleted()');
-		if(false) {
+		//console.log('Game.isLevelCompleted()');
+		if(Animator.isCollided(Animator.nucleus, Animator.userPoint)) {
 			return true;
 		} else {
 			return false;
@@ -260,7 +273,7 @@ var Game = {
 	},
 
 	checkGameState: function() {
-		console.log('Game.checkGameState()');
+		//console.log('Game.checkGameState()');
 		if(Game.isLevelCompleted()) {
 			Game.goToNextLevel();
 		}
@@ -268,5 +281,12 @@ var Game = {
 
 	handleCollision: function() {
 		console.log('Game.handleCollision()');
+		createjs.Ticker.removeAllEventListeners();
+		createjs.Tween.removeAllTweens();
+		var text = new createjs.Text("You Died", "40px Arial", "000000");
+		text.x = 200;
+		text.y = 200;
+		text.textBaseline = "alphabetic";
+		Animator.stage.addChild(text);
 	}
 }
