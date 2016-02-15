@@ -132,6 +132,26 @@ var Animator = {
 		createjs.Ticker.setFPS(60);
 		createjs.Ticker.addEventListener("tick", this.stage);
 	},
+
+	//both shape1 and shape2 have to be circles
+	collisionDetection: function(shape1, shape2) {
+		let r1 = shape1.graphics.command.radius;
+		let r2 = shape2.graphics.command.radius;
+
+		let x1 = shape1.x;
+		let y1 = shape1.y;
+		let x2 = shape2.x;
+		let y2 = shape2.y;
+
+		let distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+
+		if(distance < (r1+r2)) {
+			console.log(distance);
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 
 //used as static singleton
@@ -205,12 +225,14 @@ var Game = {
 		console.log(spaceMargin);
 		var particleCount = 0;
 		
+		var otherShapes = [];
 		//init protons
 		for(var i = 0; i < given.proton; i++) {
 			particleCount++;
 			var proton = Proton.construct(spaceMargin*particleCount, 525, 25);
 			proton.on('click', Proton.click);
 			Animator.stage.addChild(proton);
+			otherShapes.push(proton);
 		}
 
 		//init neutrons
@@ -219,6 +241,7 @@ var Game = {
 			var neutron = Neutron.construct(spaceMargin*particleCount, 525, 25);
 			neutron.on('click', Neutron.click);
 			Animator.stage.addChild(neutron);
+			otherShapes.push(neutron);
 		}
 
 		//init electrons
@@ -227,7 +250,12 @@ var Game = {
 			var electron = Electron.construct(spaceMargin*particleCount, 525, 25);
 			electron.on('click', Electron.click);
 			Animator.stage.addChild(electron);
+			otherShapes.push(electron);
 		}
+
+		var point = MagicalPoint.construct(400, 250, 10);
+		Animator.stage.addChild(point);
+		document.onkeydown = MagicalPoint.onKeyBoard(point, Animator.stage, otherShapes);
 
 		Animator.stage.update();
 	},
@@ -269,5 +297,60 @@ var Game = {
 		if(Game.isLevelCompleted()) {
 			Game.goToNextLevel();
 		}
+	},
+
+	handleCollision: function() {
+		console.log('Game.handleCollision()');
+	}
+}
+
+var MagicalPoint = {
+	logPosition: function(proton) {
+		console.log('MagicalPoint x: '+proton.x+' y:'+proton.y);
+	},
+
+	construct: function(x, y, radius) {
+		var shape = new createjs.Shape();
+		shape.graphics.beginFill(createjs.Graphics.getRGB(0,0,0));
+		shape.graphics.drawCircle(0, 0, radius);
+		shape.x = x;
+		shape.y = y;
+		return shape;
+	},
+
+	onKeyBoard: function(shape, stage, otherShapes) {
+		return function(event) {
+			otherShapes.forEach(function(item, index, array) {
+				if(Animator.collisionDetection(shape, item)) {
+					Game.handleCollision();
+				}
+			});
+
+			var KEYCODE_LEFT = 37, 
+				KEYCODE_RIGHT = 39,
+				KEYCODE_UP = 38, 
+				KEYCODE_DOWN = 40;
+
+			let distance = 3;
+			let time = 1;
+
+			var gotten = createjs.Tween.get(shape, {loop: false});
+			switch(event.keyCode) {
+				case KEYCODE_LEFT:	
+					gotten.to({x: shape.x-distance}, time);
+					break;
+				case KEYCODE_RIGHT: 
+					gotten.to({x: shape.x+distance}, time);
+					break;
+				case KEYCODE_UP: 
+					gotten.to({y: shape.y-distance}, time);
+					break;
+				case KEYCODE_DOWN: 
+					gotten.to({y: shape.y+distance}, time);
+					break;
+			}
+			createjs.Ticker.setFPS(60);
+			createjs.Ticker.addEventListener("tick", stage);
+		};
 	}
 }
