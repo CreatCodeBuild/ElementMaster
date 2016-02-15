@@ -50,7 +50,7 @@ var MagicalPoint = {
 				KEYCODE_UP = 38, 
 				KEYCODE_DOWN = 40;
 
-			let distance = 3;
+			let distance = 5;
 			let time = 1;
 
 			var gotten = createjs.Tween.get(shape, {loop: false});
@@ -173,6 +173,14 @@ var Game = {
 			{
 				name: 'Helium',
 				electron: [2]
+			},
+			{
+				name: 'Lithium',
+				electron: [2,1]
+			},
+			{
+				name: 'Beryllium',
+				electron: [2,2]
 			}
 		];
 		this.startPos = {
