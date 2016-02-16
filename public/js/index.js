@@ -17,3 +17,20 @@ elementMasterApp.config(['$routeProvider', function($routeProvider) {
     });
 }]);
 
+
+var x = {y: 2};
+
+function f(x) {
+    x.y = 3;
+    console.log(x);
+}
+
+function f2(x) {
+    x = 1;
+}
+
+f(x);
+console.log(x);
+
+f2(x);
+console.log(x);

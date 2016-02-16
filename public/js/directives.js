@@ -43,32 +43,40 @@ var MagicalPoint = {
 		return shape;
 	},
 
-	onKeyBoard: function(shape) {
-		return function(event) {
-			var KEYCODE_LEFT = 37, 
-				KEYCODE_RIGHT = 39,
-				KEYCODE_UP = 38, 
-				KEYCODE_DOWN = 40;
+	constructNucleus: function(x, y, radius) {
+		var shape = new createjs.Shape();
+		shape.graphics.beginFill(createjs.Graphics.getRGB(0,255,255));
+		shape.graphics.drawCircle(0, 0, radius);
+		shape.x = x;
+		shape.y = y;
+		return shape;
+	},
 
-			let distance = 5;
-			let time = 1;
+	onKeyBoard: function(event) {
+		var KEYCODE_LEFT = 37, 
+			KEYCODE_RIGHT = 39,
+			KEYCODE_UP = 38, 
+			KEYCODE_DOWN = 40;
 
-			var gotten = createjs.Tween.get(shape, {loop: false});
-			switch(event.keyCode) {
-				case KEYCODE_LEFT:	
-					gotten.to({x: shape.x-distance}, time);
-					break;
-				case KEYCODE_RIGHT: 
-					gotten.to({x: shape.x+distance}, time);
-					break;
-				case KEYCODE_UP: 
-					gotten.to({y: shape.y-distance}, time);
-					break;
-				case KEYCODE_DOWN: 
-					gotten.to({y: shape.y+distance}, time);
-					break;
-			}
-		};
+		console.log(Animator.direction);
+		switch(event.keyCode) {
+			case KEYCODE_LEFT:	
+				//gotten.to({x: shape.x-distance}, time);
+				Animator.direction.x -= 1;
+				break;
+			case KEYCODE_RIGHT: 
+				//gotten.to({x: shape.x+distance}, time);
+				Animator.direction.x += 1;
+				break;
+			case KEYCODE_UP: 
+				// gotten.to({y: shape.y-distance}, time);
+				Animator.direction.y -= 1;
+				break;
+			case KEYCODE_DOWN: 
+				// gotten.to({y: shape.y+distance}, time);
+				Animator.direction.y += 1;
+				break;
+		}
 	}
 }
 
@@ -77,6 +85,10 @@ var Animator = {
 	init: function(stage) {
 		console.log('Animator.init()');
 		this.stage = stage;
+		this.userPoint = undefined;
+		this.electrons = undefined;
+		this.nucleus = undefined;
+		Animator.direction = {x: 0, y:0};
 	},
 
 	findPosition: function(center, radius, xth, totalNumber) {
@@ -91,6 +103,24 @@ var Animator = {
 			x: x,
 			y: y
 		};
+	},
+
+	moveUserPoint: function() {
+		
+		if(this.userPoint.x > 800) {
+			this.userPoint.x = 0;
+		}
+		if(this.userPoint.x < 0) {
+			this.userPoint.x = 800;
+		}
+		if(this.userPoint.y > 600) {
+			this.userPoint.y = 0;
+		}
+		if(this.userPoint.y < 0) {
+			this.userPoint.y = 600;
+		}
+		this.userPoint.x += Animator.direction.x;
+		this.userPoint.y += Animator.direction.y;
 	},
 
 	/*
@@ -153,7 +183,8 @@ var Animator = {
 		let distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 
 		if(distance < (r1+r2)) {
-			console.log(distance);
+			console.log(x1, y1);
+			console.log(x2, y2);
 			return true;
 		} else {
 			return false;
@@ -181,6 +212,30 @@ var Game = {
 			{
 				name: 'Beryllium',
 				electron: [2,2]
+			},
+			{
+				name: 'Baron',
+				electron: [2,3]
+			},
+			{
+				name: 'Carbon',
+				electron: [2,4]
+			},
+			{
+				name: 'Nitrogen',
+				electron: [2,5]
+			},
+			{
+				name: 'Carbon',
+				electron: [2,6]
+			},
+			{
+				name: 'Nitrogen',
+				electron: [2,7]
+			},
+			{
+				name: 'Nitrogen',
+				electron: [2,8]
 			}
 		];
 		this.startPos = {
@@ -198,15 +253,24 @@ var Game = {
 	run: function() {
 		var stage = new createjs.Stage("canvas");
 		Animator.init(stage);
-		this.initLevel();
+		Game.currentLevel = 4;
+		this.initLevel(4);
 	},
 
-	initLevel: function() {
+	initLevel: function(level) {
 		console.log('Game.initLevel('+this.currentLevel+')');
+
+		Animator.userPoint = undefined;
+		Animator.electrons = undefined;
+		Animator.nucleus = undefined;
+		Animator.direction = {x: 0, y:0};
+
+		// createjs.Ticker.removeAllEventListeners();
+		createjs.Tween.removeAllTweens();
 		Animator.stage.removeAllChildren();
 
 		//get current level
-		var level = this.levels[this.currentLevel];
+		var level = this.levels[level];
 
 		//draw target name
 		var targetText = level.name;
@@ -218,40 +282,39 @@ var Game = {
 		Animator.targetText = text;
 
 		//init nucleus
-		var nucleus = MagicalPoint.constructElectron(this.nucleusPos.x, this.nucleusPos.y, this.nucleusPos.size);
-		Animator.stage.addChild(nucleus);
-		Animator.nucleus = nucleus;
+		Animator.nucleus = MagicalPoint.constructNucleus(this.nucleusPos.x, this.nucleusPos.y, this.nucleusPos.size);
+		Animator.stage.addChild(Animator.nucleus);
 
 		var numberOfOrbits = level.electron.length;		
-		var electrons = [];
+		Animator.electrons = [];
 		//init electrons
 		for(var i = 0; i < numberOfOrbits; i++) {
 			var electronsPerOrbit = level.electron[i];
 			var nthOrbit = i+1;
-			var radius = nthOrbit*75;
+			var radius = nthOrbit*50;
 			for(var j = 0; j < electronsPerOrbit; j++) {
-				var pos = Animator.findPosition(nucleus, radius, j, electronsPerOrbit);
-				var electron = MagicalPoint.construct(pos.x, pos.y, 15);
+				var pos = Animator.findPosition(Animator.nucleus, radius, j, electronsPerOrbit);
+				var electron = MagicalPoint.constructElectron(pos.x, pos.y, 5);
 				//console.log(pos.x, pos.y);
-				Animator.orbiting(electron, nucleus, nthOrbit*0.05);
+				Animator.orbiting(electron, Animator.nucleus, nthOrbit*0.06/(nthOrbit*2-1));
 				Animator.stage.addChild(electron);
-				electrons.push(electron);
+				Animator.electrons.push(electron);
 			}
 		}
 
 		//the point gamer controls
-		var point = MagicalPoint.construct(this.startPos.x, this.startPos.y, this.startPos.size);
-		Animator.stage.addChild(point);
-		Animator.userPoint = point;
-		document.onkeydown = MagicalPoint.onKeyBoard(point);
+		Animator.userPoint = MagicalPoint.construct(this.startPos.x, this.startPos.y, this.startPos.size);
+		Animator.stage.addChild(Animator.userPoint);
+		document.onkeydown = MagicalPoint.onKeyBoard;
 
 		Animator.stage.update();
 		//register animation events
-		createjs.Ticker.setFPS(60);
+		createjs.Ticker.setFPS(30);
 		createjs.Ticker.addEventListener("tick", function() {
-			Animator.collisionDetection(point, electrons);
+			Animator.moveUserPoint();
+			Animator.collisionDetection(Animator.userPoint, Animator.electrons);
+			Game.checkGameState();
 		});
-		createjs.Ticker.addEventListener("tick", this.checkGameState);
 		createjs.Ticker.addEventListener("tick", Animator.stage);
 	},
 
@@ -259,8 +322,9 @@ var Game = {
 		console.log('Game.goToNextLevel()');
 		if(this.currentLevel < this.levels.length-1) {
 			this.currentLevel++;
-			this.initLevel();
+			this.initLevel(this.currentLevel);
 		} else {
+			//finished the game
 			createjs.Ticker.removeAllEventListeners();
 			createjs.Tween.removeAllTweens();
 			var text = new createjs.Text("Congradulations! Last Level 达成！", "40px Arial", "000000");
